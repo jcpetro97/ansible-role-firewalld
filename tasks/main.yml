@@ -1,0 +1,115 @@
+---
+- name: ensure firewalld is installed
+  yum: name=firewalld state=present
+  tags: firewalld
+
+- name: ensure firewalld is enabled and started
+  service: name=firewalld enabled=yes state=started
+  tags: firewalld
+
+- name: get actual firewalld default zone
+  command: /bin/firewall-cmd --get-default-zone
+  register: defaultzone
+  changed_when: false
+  tags: firewalld
+
+- name: set firewalld default zone
+  command: /bin/firewall-cmd --set-default-zone={{ default_zone|default('public') }}
+  register: result
+  when: defaultzone.stdout != default_zone
+  changed_when: result.stdout == "success"
+  tags: firewalld
+
+- name: set firewalld zone interfaces
+  shell: |
+    if [[ "$(/bin/firewall-cmd --get-zone-of-interface={{ item.1 }})" != "{{ item.0.name }}" ]]
+    then
+      /bin/firewall-cmd --zone={{ item.0.name }} --add-interface={{ item.1 }} --permanent && echo "changed"
+    fi
+  with_subelements: 
+    - "{{ firewalld_zone_interfaces|default([]) }}"
+    - interfaces
+  register: shell_result
+  changed_when: shell_result.stdout | join('') is search('changed')
+  notify: restart firewalld
+  tags: firewalld
+
+- name: set firewalld zone source
+  firewalld:
+    zone: "{{ item.0.zone }}"
+    permanent: "{{ item.0.permanent|default('true') }}"
+    immediate: "{{ item.0.immediate|default('true') }}"
+    state: "{{ item.0.state|default('enabled') }}"
+    source: "{{ item.1 }}"
+  with_subelements:
+    - "{{ firewalld_zone_source|default({}) }}"
+    - "source"
+  tags: firewalld
+
+- name: get active firewalld service rules
+  shell: set -o pipefail; /bin/firewall-cmd --list-services | sed -e 's/ /\n/g'
+  args:
+    executable: /bin/bash
+  register: active_services
+  changed_when: false
+  tags: firewalld
+
+- name: purge unconfigured firewalld service rules
+  firewalld:
+    service: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: disabled
+    zone: "{{ default_zone|default('public') }}"
+  with_items: "{{ active_services.stdout_lines }}"
+  when: firewalld_purge_services and item not in firewalld_service_rules
+  tags: firewalld
+
+- name: get active firewalld port rules
+  shell: set -o pipefail; /bin/firewall-cmd --list-ports | sed -e 's/ /\n/g'
+  args:
+    executable: /bin/bash
+  register: active_ports
+  changed_when: false
+  tags: firewalld
+
+- name: purge unconfigured firewalld port rules
+  firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: disabled
+    zone: "{{ default_zone|default('public') }}"
+  with_items: "{{ active_ports.stdout_lines }}"
+  when: firewalld_purge_services and item not in firewalld_service_rules
+  tags: firewalld
+
+- name: set firewalld service rules
+  firewalld:
+    service: "{{ item.value.service | default(item.key) }}"
+    permanent: "{{ item.value.permanent|default('true') }}"
+    immediate: "{{ item.value.immediate|default('true') }}"
+    state: "{{ item.value.state|default('enabled') }}"
+    zone: "{{ item.value.zone|default('public') }}"
+  with_dict: "{{ firewalld_service_rules|default({}) }}"
+  tags: firewalld
+
+- name: set firewalld port rules
+  firewalld:
+    port: "{{ item.value.port }}/{{ item.value.protocol|default('tcp') }}"
+    permanent: "{{ item.value.permanent|default('true') }}"
+    immediate: "{{ item.value.immediate|default('true') }}"
+    state: "{{ item.value.state|default('enabled') }}"
+    zone: "{{ item.value.zone|default('public') }}"
+  with_dict: "{{ firewalld_port_rules|default({}) }}"
+  tags: firewalld
+
+- name: set firewalld rich rules
+  firewalld:
+    rich_rule: "{{ item.value.rule }}"
+    permanent: "{{ item.value.permanent|default('true') }}"
+    immediate: "{{ item.value.immediate|default('true') }}"
+    state: "{{ item.value.state|default('enabled') }}"
+    zone: "{{ item.value.zone|default('public') }}"
+  with_dict: "{{ firewalld_rich_rules|default({}) }}"
+  tags: firewalld
