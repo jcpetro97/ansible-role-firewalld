@@ -1,6 +1,6 @@
 ---
 - name: ensure firewalld is installed
-  yum: 
+  package: 
     name: firewalld
     state: present
   tags: firewalld
