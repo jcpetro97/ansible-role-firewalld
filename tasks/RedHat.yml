@@ -1,6 +1,6 @@
 ---
 - name: ensure firewalld is installed
-  yum: 
+  package: 
     name: firewalld
     state: present
   tags: firewalld
@@ -18,12 +18,31 @@
   changed_when: false
   tags: firewalld
 
+
 - name: set firewalld default zone
   command: /bin/firewall-cmd --set-default-zone={{ default_zone|default('public') }}
   register: result
   when: defaultzone.stdout != default_zone
   changed_when: result.stdout == "success"
   tags: firewalld
+
+- name: Copy rsyslog config to log iptables blocks to /var/log/firewall.log
+  template:
+    src: firewalld.rsyslog.j2
+    dest: /etc/rsyslog.d/20-firewalld.conf
+    owner:  root
+    group:  root
+    mode: 0644
+  notify: restart rsyslog
+
+- name: Get current firewalld LogDenied value
+  command: /usr/bin/firewall-cmd --get-log-denied
+  register: LogDenied
+  changed_when: false
+
+- name: Set firewalld LogDenied to unicast
+  command: /usr/bin/firewall-cmd --set-log-denied=unicast
+  when: LogDenied.stdout != 'unicast'
 
 - name: Set zone interfaces
   firewalld:
