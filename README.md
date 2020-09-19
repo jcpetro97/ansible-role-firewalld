@@ -1,4 +1,4 @@
-ansible-firewalld-role
+Ansible Firewalld Role
 =========
 
 Allows you to configure firewalld.
@@ -7,16 +7,14 @@ Config options:
 * default zone
 * interface of a zone
 * source of a zone
-* service rules (with purging of undefined rules, if wanted)
+* service rules
 * port rules
 * rich rules
 
 Requirements
 ------------
 
-Tested on RHEL 7, CentOS 7 and Fedora 29 only.
-
-Ansible 2.0 or above
+Tested on Ubuntu 18.04 and 20.04
 
 Role Variables
 --------------
@@ -70,7 +68,7 @@ The following variables are used to define the source of a zone:
     firewalld_zone_source:
       public:
         zone: (required, zone name)
-        source: (required, array of sources e.g. [ 192.168.1.1/24, 10.16.16.23 ])
+        source: (required, array of sources e.g. [ 192.168.0.1/24, 10.0.0.100 ])
         permanent: (optional, only values: true|false, default: true)
         immediate: (optional, only values: true|false, default: true)
         state: (optional, only values: enabled|disabled, default: enabled)
@@ -148,58 +146,59 @@ Handlers
 These are the handlers that are defined in this role:
 
 * restart firewalld
+* restart rsyslog
 
 Example Playbook
 ----------------
 
 ```
-    - hosts: server
+    - hosts: foo
       become: yes
       roles:
-        - firewalld
-      vars:
-        default_zone: public
-        firewalld_zone_interfaces:          
-          - interface: enp0s8
-            zone: public
-            immediate: yes
-            permanent: yes
-            state: enabled
-          - interface: enp0s3
-            zone: trusted
-            immediate: yes
-            permanent: yes
-            state: enabled        
-        firewalld_zone_source:
-          trusted:
-            zone: trusted
-            source:
-              - "192.168.1.0/24"
-              - "10.0.16.12"
-            permanent: true
-            immediate: true
-            state: enabled
-        firewalld_service_rules:
-          ssh:
-            zone: public
-            permanent: true
-            immediate: true
-            state: enabled
-        firewalld_port_rules:
-          smtp:
-            port: 25
-            protocol: tcp
-            zone: public
-            permanent: true
-            immediate: true
-            state: enabled
-        firewalld_rich_rules:
-          ftp_audit:
-            rule: 'rule service name="ftp" audit limit value="1/m" accept'
-            zone: public
-            permanent: true
-            immediate: true
-            state: enabled
+        - role: firewalld
+          vars:
+            default_zone: public
+            firewalld_zone_interfaces:          
+            - interface: enp0s8
+                zone: public
+                immediate: yes
+                permanent: yes
+                state: enabled
+            - interface: enp0s3
+                zone: trusted
+                immediate: yes
+                permanent: yes
+                state: enabled        
+            firewalld_zone_source:
+            trusted:
+                zone: trusted
+                source:
+                - "192.168.1.0/24"
+                - "10.0.16.12"
+                permanent: true
+                immediate: true
+                state: enabled
+            firewalld_service_rules:
+            ssh:
+                zone: public
+                permanent: true
+                immediate: true
+                state: enabled
+            firewalld_port_rules:
+            smtp:
+                port: 25
+                protocol: tcp
+                zone: public
+                permanent: true
+                immediate: true
+                state: enabled
+            firewalld_rich_rules:
+            ftp_audit:
+                rule: 'rule service name="ftp" audit limit value="1/m" accept'
+                zone: public
+                permanent: true
+                immediate: true
+                state: enabled
 ```
 
 License
