@@ -14,7 +14,11 @@ Config options:
 Requirements
 ------------
 
-Tested on Ubuntu 18.04 and 20.04
+Tested on:
+* Ubuntu 18.04
+* Ubuntu 20.04
+* Centos 7
+* Centos 8
 
 Role Variables
 --------------
@@ -200,6 +204,12 @@ Example Playbook
                 immediate: true
                 state: enabled
 ```
+
+Credit
+------
+
+This role was based on the role that was built by Andreas Klamke.  
+You can find the original role here:  https://github.com/FlatKey/ansible-firewalld-role
 
 License
 -------
