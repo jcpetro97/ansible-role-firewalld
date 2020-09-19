@@ -1,7 +1,7 @@
 ---
-# - name: firewalld tasks for RedHat based systems
-#   include: RedHat.yml
-#   when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat" 
+- name: firewalld tasks for RedHat based systems
+  include: RedHat.yml
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat" 
 
 - name: firewalld tasks for Debian based systems
   include: Debian.yml
