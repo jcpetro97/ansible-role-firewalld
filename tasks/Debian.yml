@@ -19,19 +19,19 @@
     state: stopped
   tags: firewalld
 
-- name: ensure rsyslog is installed
-  package: 
-    name: rsyslog
-    state: present
+# - name: ensure rsyslog is installed
+#   package: 
+#     name: rsyslog
+#     state: present
 
-- name: Copy rsyslog config to log iptables blocks to /var/log/firewall.log
-  template:
-    src: firewalld.rsyslog.j2
-    dest: /etc/rsyslog.d/20-firewalld.conf
-    owner:  root
-    group:  root
-    mode: 0644
-  notify: restart rsyslog
+# - name: Copy rsyslog config to log iptables blocks to /var/log/firewall.log
+#   template:
+#     src: firewalld.rsyslog.j2
+#     dest: /etc/rsyslog.d/20-firewalld.conf
+#     owner:  root
+#     group:  root
+#     mode: 0644
+#   notify: restart rsyslog
 
 - name: Get current firewalld LogDenied value
   command: /usr/bin/firewall-cmd --get-log-denied

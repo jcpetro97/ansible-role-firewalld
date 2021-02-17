@@ -26,14 +26,14 @@
   changed_when: result.stdout == "success"
   tags: firewalld
 
-- name: Copy rsyslog config to log iptables blocks to /var/log/firewall.log
-  template:
-    src: firewalld.rsyslog.j2
-    dest: /etc/rsyslog.d/20-firewalld.conf
-    owner:  root
-    group:  root
-    mode: 0644
-  notify: restart rsyslog
+# - name: Copy rsyslog config to log iptables blocks to /var/log/firewall.log
+#   template:
+#     src: firewalld.rsyslog.j2
+#     dest: /etc/rsyslog.d/20-firewalld.conf
+#     owner:  root
+#     group:  root
+#     mode: 0644
+#   notify: restart rsyslog
 
 - name: Get current firewalld LogDenied value
   command: /usr/bin/firewall-cmd --get-log-denied
