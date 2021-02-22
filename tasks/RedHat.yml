@@ -1,25 +1,25 @@
 ---
-- name: ensure firewalld is installed
+- name: Redhat - ensure firewalld is installed
   package: 
     name: firewalld
     state: present
   tags: firewalld
 
-- name: ensure firewalld is enabled and started
+- name: Redhat - ensure firewalld is enabled and started
   service:
     name: firewalld 
     enabled: yes
     state: started
   tags: firewalld
 
-- name: get firewalld default zone
+- name: Redhat - get firewalld default zone
   command: /bin/firewall-cmd --get-default-zone
   register: defaultzone
   changed_when: false
   tags: firewalld
 
 
-- name: set firewalld default zone
+- name: Redhat - set firewalld default zone
   command: /bin/firewall-cmd --set-default-zone={{ default_zone|default('public') }}
   register: result
   when: defaultzone.stdout != default_zone
@@ -35,16 +35,16 @@
 #     mode: 0644
 #   notify: restart rsyslog
 
-- name: Get current firewalld LogDenied value
+- name: Redhat - Get current firewalld LogDenied value
   command: /usr/bin/firewall-cmd --get-log-denied
   register: LogDenied
   changed_when: false
 
-- name: Set firewalld LogDenied to unicast
+- name: Redhat - Set firewalld LogDenied to unicast
   command: /usr/bin/firewall-cmd --set-log-denied=unicast
   when: LogDenied.stdout != 'unicast'
 
-- name: Set zone interfaces
+- name: Redhat - Set zone interfaces
   firewalld:
     interface: "{{ item.interface }}"
     zone: "{{ item.zone | default(omit) }}"
@@ -53,7 +53,7 @@
     state: "{{ item.state }}"
   with_items: "{{ firewalld_zone_interfaces | default([]) }}"
 
-- name: set firewalld zone source
+- name: Redhat - set firewalld zone source
   firewalld:
     zone: "{{ item.0.zone }}"
     permanent: "{{ item.0.permanent|default('true') }}"
@@ -65,7 +65,7 @@
     - "source"
   tags: firewalld
 
-- name: set firewalld service rules
+- name: Redhat - set firewalld service rules
   firewalld:
     service: "{{ item.value.service | default(item.key) }}"
     permanent: "{{ item.value.permanent|default('true') }}"
@@ -75,7 +75,7 @@
   with_dict: "{{ firewalld_service_rules|default({}) }}"
   tags: firewalld
 
-- name: set firewalld port rules
+- name: Redhat - set firewalld port rules
   firewalld:
     port: "{{ item.value.port }}/{{ item.value.protocol|default('tcp') }}"
     permanent: "{{ item.value.permanent|default('true') }}"
@@ -85,7 +85,7 @@
   with_dict: "{{ firewalld_port_rules|default({}) }}"
   tags: firewalld
 
-- name: set firewalld rich rules
+- name: Redhat - set firewalld rich rules
   firewalld:
     rich_rule: "{{ item.value.rule }}"
     permanent: "{{ item.value.permanent|default('true') }}"

@@ -1,5 +1,5 @@
 ---
-- name: ensure firewalld is installed
+- name: Debian - ensure firewalld is installed
   apt: 
     name: firewalld
     update_cache: yes
@@ -7,14 +7,14 @@
     state: present
   tags: firewalld
 
-- name: ensure firewalld is enabled and started
+- name: Debian - ensure firewalld is enabled and started
   service: 
     name: firewalld
     enabled: yes
     state: started
   tags: firewalld
 
-- name: ensure ufw is stopped and disabled
+- name: Debian - ensure ufw is stopped and disabled
   service: 
     name: ufw
     enabled: no
@@ -35,29 +35,29 @@
 #     mode: 0644
 #   notify: restart rsyslog
 
-- name: Get current firewalld LogDenied value
+- name: Debian - Get current firewalld LogDenied value
   command: /usr/bin/firewall-cmd --get-log-denied
   register: LogDenied
   changed_when: false
 
-- name: Set firewalld LogDenied to unicast
+- name: Debian - Set firewalld LogDenied to unicast
   command: /usr/bin/firewall-cmd --set-log-denied=unicast
   when: LogDenied.stdout != 'unicast'
 
-- name: get firewalld default zone
+- name: Debian - get firewalld default zone
   command: /usr/bin/firewall-cmd --get-default-zone
   register: defaultzone
   changed_when: false
   tags: firewalld
 
-- name: set firewalld default zone
+- name: Debian - set firewalld default zone
   command: /usr/bin/firewall-cmd --set-default-zone={{ default_zone | default('public') }}
   register: result
   when: defaultzone.stdout != default_zone
   changed_when: result.stdout == "success"
   tags: firewalld  
 
-- name: Set zone interfaces
+- name: Debian - Set zone interfaces
   firewalld:
     interface: "{{ item.interface }}"
     zone: "{{ item.zone | default(omit) }}"
@@ -66,7 +66,7 @@
     state: "{{ item.state }}"
   with_items: "{{ firewalld_zone_interfaces | default([]) }}"
 
-- name: set firewalld zone source
+- name: Debian - set firewalld zone source
   firewalld:
     zone: "{{ item.0.zone }}"
     permanent: "{{ item.0.permanent|default('yes') }}"
@@ -78,7 +78,7 @@
     - "source"
   tags: firewalld
 
-- name: set firewalld service rules
+- name: Debian - set firewalld service rules
   firewalld:
     service: "{{ item.value.service | default(item.key) }}"
     permanent: "{{ item.value.permanent|default('true') }}"
@@ -88,7 +88,7 @@
   with_dict: "{{ firewalld_service_rules|default({}) }}"
   tags: firewalld
 
-- name: set firewalld port rules
+- name: Debian - set firewalld port rules
   firewalld:
     port: "{{ item.value.port }}/{{ item.value.protocol|default('tcp') }}"
     permanent: "{{ item.value.permanent|default('true') }}"
@@ -98,7 +98,7 @@
   with_dict: "{{ firewalld_port_rules|default({}) }}"
   tags: firewalld
 
-- name: set firewalld rich rules
+- name: Debian - set firewalld rich rules
   firewalld:
     rich_rule: "{{ item.value.rule }}"
     permanent: "{{ item.value.permanent|default('true') }}"
